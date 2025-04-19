@@ -1,0 +1,31 @@
+# ------------------ 通用规则 ------------------
+# 环境变量（敏感配置）
+.env*          # 忽略所有.env开头的文件（如 .env、.env.development）
+!.env.example  # 保留示例文件（白名单）
+
+# 前端项目（Node.js）
+frontend/node_modules/  # 忽略整个目录（注意末尾的斜杠）
+.next/         # Next.js 缓存
+dist/          # 打包输出
+
+# 后端项目（Python/Java等）
+__pycache__/   # Python缓存
+target/        # Java编译产物
+.venv/         # 虚拟环境
+
+# 系统临时文件
+*.log          # 日志文件
+*.swp          # Vim临时文件
+.DS_Store      # macOS元数据
+
+# ------------------ 特殊场景 ------------------
+# 忽略所有 .txt，但保留 README.txt
+*.txt
+!README.txt
+
+# 仅忽略当前目录下的 config.json，子目录不忽略
+/config.json
+
+# 忽略所有 .env，但允许 .env.prod（通过后缀区分）
+.env
+!.env.prod

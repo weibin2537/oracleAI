@@ -1,4 +1,0 @@
-2025/04/19 09:07:03 [1;34m[I] [service.go:304] [24699957749a41bc] login to server success, get run id [24699957749a41bc], server udp port [0][0m
-2025/04/19 09:07:03 [1;34m[I] [proxy_manager.go:144] [24699957749a41bc] proxy added: [frontend backend][0m
-2025/04/19 09:07:03 [1;34m[I] [control.go:180] [24699957749a41bc] [frontend] start proxy success[0m
-2025/04/19 09:07:03 [1;34m[I] [control.go:180] [24699957749a41bc] [backend] start proxy success[0m

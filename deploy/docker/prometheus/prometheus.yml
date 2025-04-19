@@ -1,0 +1,39 @@
+# deploy/docker/prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['neo4j:2004']
+
+  - job_name: 'api'
+    static_configs:
+      - targets: ['api:8000']
+
+  - job_name: 'frontend'
+    static_configs:
+      - targets: ['frontend:80']
+
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # AlertManager配置，如果有的话
+
+rule_files:
+  # 告警规则文件，如果有的话
+  # - 'alert_rules.yml'

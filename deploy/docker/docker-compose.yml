@@ -1,0 +1,180 @@
+# deploy/docker/docker-compose.yml
+version: '3.8'
+
+services:
+  # Neo4j 图数据库
+  neo4j:
+    image: neo4j:5.11
+    container_name: oracle-sp-neo4j
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - ./neo4j/plugins:/plugins
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4J_dbms_memory_heap_max__size=4G
+      - NEO4J_dbms_memory_pagecache_size=2G
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # 解析器服务
+  parser:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/parser.Dockerfile
+    container_name: oracle-sp-parser
+    volumes:
+      - ../../parser:/app/parser
+      - parser_data:/app/data
+      - parser_models:/app/models
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=password
+      - USE_NER_MODEL=false  # 是否使用NER模型，如果为false则使用正则表达式
+    depends_on:
+      - neo4j
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # API服务
+  api:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/api.Dockerfile
+    container_name: oracle-sp-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../api:/app/api
+      - parser_data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=password
+      - UPLOAD_DIR=/app/data/uploads
+    depends_on:
+      - neo4j
+      - parser
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # 前端服务
+  frontend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/frontend.Dockerfile
+    container_name: oracle-sp-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # Elasticsearch（用于日志收集）
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    container_name: oracle-sp-elasticsearch
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # Kibana（日志可视化）
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    container_name: oracle-sp-kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # Filebeat（日志收集器）
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    container_name: oracle-sp-filebeat
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - neo4j_logs:/var/log/neo4j:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # Prometheus（监控系统）
+  prometheus:
+    image: prom/prometheus:v2.36.0
+    container_name: oracle-sp-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+  # Grafana（监控可视化）
+  grafana:
+    image: grafana/grafana:9.0.0
+    container_name: oracle-sp-grafana
+    ports:
+      - "3100:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - oracle-sp-network
+    restart: unless-stopped
+
+networks:
+  oracle-sp-network:
+    driver: bridge
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  parser_data:
+  parser_models:
+  elasticsearch_data:
+  prometheus_data:
+  grafana_data:

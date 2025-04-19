@@ -1,0 +1,13 @@
+2025/04/18 20:55:46 [1;34m[I] [service.go:304] [252d63ec1a356b28] login to server success, get run id [252d63ec1a356b28], server udp port [0][0m
+2025/04/18 20:55:46 [1;34m[I] [proxy_manager.go:144] [252d63ec1a356b28] proxy added: [backend frontend][0m
+2025/04/18 20:55:46 [1;34m[I] [control.go:180] [252d63ec1a356b28] [backend] start proxy success[0m
+2025/04/18 20:55:46 [1;34m[I] [control.go:180] [252d63ec1a356b28] [frontend] start proxy success[0m
+2025/04/18 20:57:29 [1;31m[E] [control.go:158] [252d63ec1a356b28] work connection closed before response StartWorkConn message: EOF[0m
+2025/04/18 20:57:29 [1;34m[I] [control.go:282] [252d63ec1a356b28] control writer is closing[0m
+2025/04/18 20:57:29 [1;34m[I] [service.go:177] [252d63ec1a356b28] try to reconnect to server...[0m
+2025/04/18 20:57:29 [1;34m[I] [visitor_manager.go:60] [252d63ec1a356b28] gracefully shutdown visitor manager[0m
+2025/04/18 20:57:30 [1;34m[I] [service.go:304] [252d63ec1a356b28] login to server success, get run id [252d63ec1a356b28], server udp port [0][0m
+2025/04/18 20:57:30 [1;34m[I] [proxy_manager.go:144] [252d63ec1a356b28] proxy added: [backend frontend][0m
+2025/04/18 20:57:30 [1;34m[I] [control.go:180] [252d63ec1a356b28] [backend] start proxy success[0m
+2025/04/18 20:57:30 [1;34m[I] [control.go:180] [252d63ec1a356b28] [frontend] start proxy success[0m
+2025/04/18 21:02:56 [1;31m[E] [proxy.go:797] [252d63ec1a356b28] [backend] connect to local service [localhost:8080] error: dial tcp 172.24.80.1:8080: connect: connection refused[0m

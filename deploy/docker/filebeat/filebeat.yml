@@ -1,0 +1,33 @@
+# deploy/docker/filebeat/filebeat.yml
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/neo4j/*.log
+  tags: ["neo4j"]
+
+- type: container
+  enabled: true
+  paths:
+    - /var/lib/docker/containers/*/*.log
+  processors:
+    - add_docker_metadata:
+        host: "unix:///var/run/docker.sock"
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  indices:
+    - index: "filebeat-neo4j-%{+yyyy.MM.dd}"
+      when.contains:
+        tags: "neo4j"
+    - index: "filebeat-docker-%{+yyyy.MM.dd}"
+      when.contains:
+        tags: "docker"
+
+setup.kibana:
+  host: "kibana:5601"
+
+setup.template.enabled: true
+setup.template.name: "filebeat"
+setup.template.pattern: "filebeat-*"
+setup.ilm.enabled: false
